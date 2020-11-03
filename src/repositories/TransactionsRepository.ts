@@ -23,12 +23,34 @@ class TransactionsRepository {
     return this.transactions;
   }
 
-  public getBalance(income, outcome, total): Balance {}
+  public getBalance(): Balance {
+    const balance = this.transactions.reduce((accumulator, transaction) => {
+      if (transaction.type == 'income') {
+        accumulator.income += transaction.value;
+      } else {
+        accumulator.outcome += transaction.value
+      }
+
+      accumulator.total = accumulator.income - accumulator.outcome
+
+      return (accumulator)
+
+    }, {income: 0, outcome: 0, total: 0})
+
+    return balance;
+  }
 
   public create({ title, value, type }: CreateTransaction): Transaction {
     const transaction = new Transaction({ title, value, type });
+    const balance = this.getBalance()
 
-    this.transactions.push(transaction);
+    if (transaction.type == 'outcome' && balance.total < transaction.value) {
+        throw new Error("You don't have balance for this transaction");
+    }
+
+      this.transactions.push(transaction);
+
+
 
     return transaction;
   }
